@@ -1,0 +1,9 @@
+<script type="text/javascript" src="{{ url_for('static', filename='vendor/jquery/jquery-3.3.1.js') }}" ></script>
+<span id='message'>Testing for root certificate...</span>
+<h3>CRL Revocations</h3>
+<table><h5>Non-EV Certificates</h5>
+<tr><td width=600>Non-EV certificate, 0 intermediates, none revoked <small>(<a href='https://test100-1499365095.test.sslresearch.org:11100/test.json'>test100</a>)</small></td><td><span id="test100-1499365095"></span></td></tr>
+
+</table><script>
+  Date.now = Date.now || function() { return +new Date; };
+  //list contains the list of domains that need to be tested

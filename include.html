@@ -1,0 +1,77 @@
+<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.3/jquery.xdomainrequest.min.js'></script><span id='message'>Testing for root certificate...</span>
+<h3>CRL Revocations</h3>
+<table><h5>Non-EV Certificates</h5>
+<tr><td width=600>Non-EV certificate, 0 intermediates, none revoked <small>(<a href='https://test100-1499365095.test.sslresearch.org:11100/test.json'>test100</a>)</small></td><td><span id="test100-1499365095"></span></td></tr>
+
+</table><script>
+  Date.now = Date.now || function() { return +new Date; };
+  //list contains the list of domains that need to be tested
+  var list = ["1"];
+  var outcomes = ["pass"];
+  //var ports = [" ,"];
+  var done = 0;
+  var results = {};
+  //gets the type of browser from user-agent
+  results["user-agent"] = navigator.userAgent;
+
+//posting the results onto the server
+//server contains the results string which at the moment only contains the user-agent string as a key; value is empty
+
+//function upload gtes the results and posts them on a page called /results/post.php
+//make a post.py app
+  function upload() {
+    var json = JSON.stringify(results); 
+
+    $.ajax({
+      type: "POST",
+      url: "/results/post.php",
+      data: json,
+      contentType: "application/json; charset=utf-8",
+      dataType: "json"
+    });
+  }
+//put my own domain names inside the list function
+//load this main page inside the browser
+//where are the success, error, complete events coming from
+//above are ajax-specific events that were triggered once the page was loaded
+//where is the capital PASS string coming from
+//add a count class to the page --> will contain the total number of tests that are done
+//Modify line 46 to contain the app that I have
+//outcome always contains a single value called pass --> only meant to output results
+//test.json is only referring to the domains that do tests
+//perl code created a list with a lot more entries
+  function doNext(last) {
+    done++;
+    if (list.length > 0) {
+      $('#count').text(done);
+      var next = list.pop();
+      var start = Date.now();
+      var outcome = outcomes.pop();
+      //var port = ports.pop();
+      //$.ajax("https://" + next + ".test.sslresearch.org:" + port + "/test.json",
+      //$.ajax("https://test" + next + ".securepki.org", {
+      //   "timeout": 121000,
+      //   "success": function(data, status, xhr) { var end = Date.now(); $( "#" + next ).html((outcome == "pass" ? "<font color='green'>&#x2713;</font>" : "<font color='red'>&#x2717;</font>") + " " + status + "/" + data); results[next] = [(outcome == "pass" ? "PASS" : "FAIL"), end-start]; },
+      //   "error": function(xhr, status, error) { var end = Date.now(); $( "#" + next ).html((outcome == "fail" ? "<font color='green'>&#x2713;</font>" : "<font color='red'>&#x2717;</font>") + " " + status + "/" + error); results[next] = [(outcome == "fail" ? "PASS" : "FAIL"), end-start]; },
+      //   "complete": function() { doNext(next); }
+      //});
+     $.ajax("https://test" + next + ".securepki.org", {
+         "timeout": 121000,
+         "success": function(data, status, xhr) { var end = Date.now(); $( "#" + next ).html((outcome == "pass" ? "<font color='green'>&#x2713;</font>" : "<font color='red'>&#x2717;</font>") + " " + status + "/" + data); results[next] = [(outcome == "pass" ? "PASS" : "FAIL"), end-start]; },
+         "error": function(xhr, status, error) { var end = Date.now(); $( "#" + next ).html((outcome == "fail" ? "<font color='green'>&#x2713;</font>" : "<font color='red'>&#x2717;</font>") + " " + status + "/" + error); results[next] = [(outcome == "fail" ? "PASS" : "FAIL"), end-start]; },
+         "complete": function() { doNext(next); }
+      });
+    } else {
+        //upload to results/php once everything is done
+      upload();
+    }
+  }
+
+//add a #message class to a page
+//add a #total class to a page --> will be filled with the length of the list containing the total number of tests
+  $.ajax("https://test.sslresearch.org/test.json", { 
+    "timeout": 5000,
+    "success": function() { $("#message").html("Root certificate verified. Running tests...  (<span id='count'>0</span>/<span id='total'>Unknown</span> completed)"); $('#total').text(list.length); doNext(); },
+    "error": function() { $("#message").html("<font color='red'>Root certificate does not appeared to be installed.</font>  Download and install the root certificate at <a href='root.crt'>root.crt</a>.  Test <a href='https://test.sslresearch.org/test.json'>here</a>."); }
+  });
+</script>

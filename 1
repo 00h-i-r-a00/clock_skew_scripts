@@ -1,0 +1,68 @@
+import pdb
+import sys
+import argparse
+import subprocess
+import OpenSSL
+import ssl
+import socket
+import datetime
+
+def get_not_before(domain):
+
+    cert = ssl.get_server_certificate((domain, 443))
+    x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
+    notAfter = x509.get_notAfter().strip('Z')
+    #20190313081700Z
+    ssl_date_fmt = '%Y%m%d%H%M%S'
+
+    notAfterDate = datetime.datetime.strptime(notAfter, ssl_date_fmt)
+    return notAfterDate
+
+def get_month(month):
+
+    
+def main():
+    #get arguments
+    #domains in a list
+    #time range to test in seconds
+
+
+    #domains = args.domains
+    #time_range = args.time
+
+    domains = ['www.google.com']
+    time_range = 10
+
+    browsers = ['Chrome', 'Firefox', 'Safari']
+
+
+    ##get the certificate notBefore date
+
+    for domain in domains:
+        #format of notBefore --> 20190313081700Z --> YYYYMMDDHHSS00Z
+        not_before = get_not_before(domain)
+        pdb.set_trace()
+        for browser in browsers:
+            if browser == 'Chrome':
+                for seconds_to_check in xrange(time_range):
+                    
+                    date_to_check = not_before + timedelta(seconds=seconds_to_check+1) #obtain date (notAfter + seconds + 1)
+                    date_to_set = date_to_check.datetime.strftime("%d %b %Y %H:%M:%S")
+                    pdb.set_trace()
+                    #set date using subprocess; change sudo date
+
+                    ##retrieve website using selenium
+                    ##get the error or the page content
+                    ##if error contains clock ahead then report grace == seconds
+
+            if browser == 'Firefox':
+                pass
+            if browser == 'Safari':
+                pass
+
+
+
+
+
+if __name__ == "__main__":
+    main()
