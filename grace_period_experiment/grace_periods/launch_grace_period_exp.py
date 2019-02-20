@@ -87,7 +87,6 @@ def load_root_CA():
         pem_data = f.read()
 
     root_cert = x509.load_pem_x509_certificate(pem_data, default_backend())
-    pdb.set_trace()
     with open('rootCA.key', 'rb') as f:
         pem_data = f.read()
 
@@ -176,11 +175,15 @@ def add_tests_to_main_page(domains, test_type, direction, browser_type, platform
     
     browser_type = browser_type + '_' + platform 
     
+    ##reversing the domain_list to be able to do the zeroth test first
+    domains.reverse()
+    
     for domain in domains:
         num = domain.split(".")[0].replace('time', '')
         list_string += '"' + str(num) + '",'
         
     list_string.strip(",")
+    
     list_string = "var list = [" + list_string + "]; \n var test_type = '" + test_type + "'; \n var direction = '" + direction + "'; \n var browser_type='" + browser_type + "';\n var test_name = '" + test_name + "' \n"
   
     with open('/home/hira/research/clock_skew_scripts/grace_period_experiment/flask_app/main_page/app/templates/preinclude.txt', 'r') as f:
@@ -347,6 +350,7 @@ def main():
     if args.test_type == "notBefore":
         
         notAfter = datetime.datetime.now(timezone.utc) + datetime.timedelta(days = 30)
+        base_time = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun))
         
         for i in range(int(args.domain_num)):
             split_name = args.domain_name.split(".")
@@ -356,15 +360,18 @@ def main():
             
             ##setting up the notBefore daten 
             if args.test_direction == 'left':
-                notBefore = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun) - i)
+                #notBefore = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun) - i)
+                notBefore = base_time - datetime.timedelta(minutes = i)
+                
             if args.test_direction == 'right':
-                notBefore = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun) + i)
+                #notBefore = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun) + i)
+                notBefore = base_time + datetime.timedelta(minutes = i)
             
             sign_certificate_request(domain_csr, root_key, root_crt, domain_key, domain_name, notBefore, notAfter)
             domain_names.append(domain_name)
             thresholds.append(str(i))
     
-        base_time = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun))
+        #base_time = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun))
         add_tests_to_main_page(domain_names, args.test_type, args.test_direction, args.device, args.platform, args.test_name)
         
         if args.platform == 'desktop':
@@ -377,8 +384,8 @@ def main():
             print("Sleeping Over")
         
     if args.test_type == "notAfter":
-        notBefore =datetime.datetime.now(timezone.utc) - datetime.timedelta(days = 4)
-        
+        notBefore = datetime.datetime.now(timezone.utc) - datetime.timedelta(days = 4)
+        base_time = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun))
         ##to the right and center of the notAfter date            
         for i in range(int(args.domain_num)):
             split_name = args.domain_name.split(".")
@@ -388,16 +395,18 @@ def main():
             
             ##setting up the notAfter date
             if args.test_direction == 'left':
-                notAfter = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun) - i)
+                notAfter = base_time - datetime.timedelta(minutes = i)
+                #notAfter = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun) - i)
             elif args.test_direction == 'right':
-                notAfter = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun) + i)
+                notAfter = base_time + datetime.timedelta(minutes = i)
+                #notAfter = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun) + i)
                 
             sign_certificate_request(domain_csr, root_key, root_crt, domain_key, domain_name, notBefore, notAfter)
             domain_names.append(domain_name)
             thresholds.append(str(i))
             
         ##to the left of the notAfter date
-        base_time = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun))
+        #base_time = datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes = int(args.timetorun))
         add_tests_to_main_page(domain_names, args.test_type, args.test_direction, args.device, args.platform, args.test_name)
         
         if args.platform == 'desktop':
